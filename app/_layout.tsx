@@ -17,7 +17,7 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [login,setLogin] = useState(false);
+  const [login,setLogin] = useState(true);
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });

@@ -5,7 +5,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import * as FileSystem from 'expo-file-system';
 import React, { useRef, useEffect, useState } from 'react';
-import { View, PanResponder, Dimensions, StyleSheet, ActivityIndicator, Text, TextInput,Image } from 'react-native';
+import { View, PanResponder, Dimensions, StyleSheet, ActivityIndicator, Text, TextInput, Image, SafeAreaView } from 'react-native';
 import { Renderer, TextureLoader } from 'expo-three';
 import { THREE } from 'expo-three';
 import { GLView } from 'expo-gl';
@@ -15,13 +15,15 @@ import { Asset } from 'expo-asset';
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import SignalRService from '@/components/SignalRService';
 import { MAP_ID, USER_ID, MOVE_SPEED } from '@/constants/Constant';
-
+import { useNavigation } from 'expo-router';
 import { Group, Tween, Easing } from '@tweenjs/tween.js';
 
 const tweenGroup = new Group();
 
 
 export default function MapScreen() {
+
+  const navigation = useNavigation();
   const [loaded, setLoaded] = useState(false);
   const [textureUri, setTextureUri] = useState('');
   const cameraRef = useRef(null);
@@ -35,7 +37,7 @@ export default function MapScreen() {
   const tagInfo = useRef(null);
 
   const onContextCreate = async (gl) => {
-    if (!loaded) return; // 🔹 Đảm bảo không chạy nếu chưa load xong
+    if (!loaded) return; //  Đảm bảo không chạy nếu chưa load xong
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
@@ -254,8 +256,6 @@ export default function MapScreen() {
 
     });
     SignalRService.on("SendPosition", (data) => {
-
-
       for (var k = 0; k < data.length; k++) {
         if (!tagInfo.current) return;
         let tagIndex = tagInfo.current.findIndex((item) => item.data.tagID == data[k].tagID);
@@ -264,23 +264,15 @@ export default function MapScreen() {
           tagInfo.current[tagIndex].data.y = data[k].y;
           if (data[k].status != 4) {
             tagInfo.current[tagIndex].obj3D.visible = true;
-
           }
-
         }
-
       }
     });
 
     SignalRService.on("Connected", (msg) => {
 
-
     });
     SignalRService.on("sendbasestation", (msg) => {
-      //console.log(" Connected212:", SignalRService);
-
-      //  SignalRService.JoinGroup(1,2020);
-
     })
 
 
@@ -299,7 +291,9 @@ export default function MapScreen() {
       return null;
     }
   };
-
+const moveScreenSearch = () => {
+  navigation.navigate('explore');
+}
   return (
     <View style={{ flex: 1 }} >
 
@@ -313,34 +307,40 @@ export default function MapScreen() {
         )}
 
       </View>
-
+      <SafeAreaView style={styles.safeAreaView}>
       <View style={styles.searchContainer}>
-      <Image
-       source={require('@/assets/images/react-logo.png')}  
-        style={styles.icon}
-      />
+        <Image
+          source={require('@/assets/images/react-logo.png')}
+          style={styles.icon}
+        />
         <TextInput
+            editable={false}
           style={styles.searchInput}
           placeholder="Tìm kiếm địa điểm"
           value={searchQuery}
           onChangeText={setSearchQuery}
+          onTouchStart={moveScreenSearch}
         />
-
-
       </View>
+      </SafeAreaView>
+
     </View>
 
   );
 }
 
 const styles = StyleSheet.create({
+  safeAreaView:{
+    position: 'absolute',
+    width: '100%',
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    position: 'absolute',
-    top: 50,
-    left: 10,
-    right: 10,
+    marginTop: 20,
+    marginLeft: 20,
+    marginRight: 20,
+    
     backgroundColor: 'white',
     borderRadius: 8,
     paddingHorizontal: 10,
@@ -365,7 +365,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   icon: {
-
     width: 40,
     height: 40,
     marginHorizontal: 5,
