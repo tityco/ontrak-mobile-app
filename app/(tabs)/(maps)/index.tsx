@@ -4,8 +4,8 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import * as FileSystem from 'expo-file-system';
-import React, { useRef, useEffect, useState } from 'react';
-import { View, PanResponder, Dimensions, StyleSheet, ActivityIndicator, Text, TextInput, Image, SafeAreaView } from 'react-native';
+import React, { useRef, useEffect, useState, useCallback,  } from 'react';
+import { View, PanResponder, Dimensions, StyleSheet, ActivityIndicator, Text, TextInput, Image, SafeAreaView, Switch } from 'react-native';
 import { Renderer, TextureLoader } from 'expo-three';
 import { THREE } from 'expo-three';
 import { GLView } from 'expo-gl';
@@ -15,15 +15,23 @@ import { Asset } from 'expo-asset';
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import SignalRService from '@/components/SignalRService';
 import { MAP_ID, USER_ID, MOVE_SPEED } from '@/constants/Constant';
-import { useNavigation } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { Group, Tween, Easing } from '@tweenjs/tween.js';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LightSpeedInLeft } from 'react-native-reanimated';
 
 const tweenGroup = new Group();
 
 
 export default function MapScreen() {
 
+  const [isVisibleClose, setIsVisibleClose] = useState(false);
+  // const router = useRouter();
   const navigation = useNavigation();
+  const params = useLocalSearchParams(); 
   const [loaded, setLoaded] = useState(false);
   const [textureUri, setTextureUri] = useState('');
   const cameraRef = useRef(null);
@@ -34,11 +42,26 @@ export default function MapScreen() {
   const scaleTagRef = useRef(null);
   const { width, height } = Dimensions.get('window');
   const [searchQuery, setSearchQuery] = useState('');
+  const [start, setStart] = useState(null);  
+  const [destination, setDestination] = useState(null);
+  const [finding, setFinding] = useState(false);
   const tagInfo = useRef(null);
+  const startRef = useRef(null);
+  const destinationRef = useRef(null);
+  const linePath = useRef(null);
+
+  let dt = (new Date()).getTime();
 
   const onContextCreate = async (gl) => {
-    if (!loaded) return; //  Đảm bảo không chạy nếu chưa load xong
 
+    if (!loaded) return; //  Đảm bảo không chạy nếu chưa load xong
+      await AsyncStorage.setItem('selectedStart', '' );
+
+      
+      await AsyncStorage.setItem('selectedDestination', '');
+
+ 
+      
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
     const aspect = width / height;
@@ -91,17 +114,85 @@ export default function MapScreen() {
     scene.add(floor);
     getTag();
 
-
+    dt
     const render = (time) => {
       requestAnimationFrame(render);
       tweenGroup.update(time);
+      if(((new Date()).getTime() - dt )>=500){
+        genFindPath();
+        dt= (new Date()).getTime();
+      };
+  
       renderer.render(scene, camera);
+
       gl.endFrameEXP();
     };
     render();
 
 
   };
+  const genFindPath = () => {
+   
+    if (!startRef.current || !destinationRef.current) {
+      console.log("nofindr")
+      if(linePath.current)
+      {
+        sceneRef.current.remove(linePath.current);
+        linePath.current= null;
+      }
+ 
+      if (finding) {
+   
+
+        setFinding(false);
+      }
+    }else{
+      console.log("rfindr")
+      if (!finding) {
+        setFinding(true);
+      }
+      let points = [
+        // new THREE.Vector3(82, 239, 10),  // Điểm đầu
+        // new THREE.Vector3(452, 105, 10),   // Điểm cuối
+      ];
+    
+      
+      // Tạo material cho đường thẳng
+      const material = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 5 });
+      if(sceneRef.current &&  tagInfo.current){
+    
+
+        let tagIndex = tagInfo.current.findIndex((item) => item.data.tagID == startRef.current.tagID);
+        let tagIndex2 = tagInfo.current.findIndex((item) => item.data.tagID == destinationRef.current.tagID);
+        if (tagIndex != -1 && tagIndex2 != -1 && sceneRef.current) {
+    
+          let points = [
+        // new THREE.Vector3(82, 239, 10),  // Điểm đầu
+        // new THREE.Vector3(452, 105, 10),   // Điểm cuối
+          ];
+                points.push(new THREE.Vector3(parseInt(tagInfo.current[tagIndex].data.x), parseInt(tagInfo.current[tagIndex].data.y), 10))
+          points.push(new THREE.Vector3(parseInt(tagInfo.current[tagIndex2].data.x), parseInt(tagInfo.current[tagIndex2].data.y), 10))
+
+          const geometry = new THREE.BufferGeometry().setFromPoints(points);
+          console.log(points)
+          if(linePath.current)
+            sceneRef.current.remove(linePath.current);
+          // Tạo đường thẳng và thêm vào scene
+          const line = new THREE.Line(geometry, material);
+          linePath.current  = line;
+          console.log(line)
+          sceneRef.current.add(line);
+          // points.push(new THREE.Vector3(0,0, 10));
+          // points.push(new THREE.Vector3(200, 200, 10))
+        }
+     
+      }
+
+
+    }
+
+    // console.log("find")
+  }
   const moveBoxAlongPath = (tag) => {
     const coords = { x: tag.obj3D.position.x, y: tag.obj3D.position.y };
     const tween = new Tween(coords, tweenGroup)
@@ -239,13 +330,10 @@ export default function MapScreen() {
       return null;
     }
   };
-  useEffect(() => {
 
-  });
   useEffect(() => {
     fetchData();
     SignalRService.startConnection();
-
 
     SignalRService.on("SendPing", (msg) => {
       //onsole.log("SendPing:", msg);
@@ -277,7 +365,25 @@ export default function MapScreen() {
 
 
   }, []);
+  const fetchDataLocal = async () => {
+    const storedData = await AsyncStorage.getItem('selectedStart');
+    if (storedData) {
+      setStart(JSON.parse(storedData))
+      startRef.current = JSON.parse(storedData)
+    }
+    const storedData2 = await AsyncStorage.getItem('selectedDestination');
+    if (storedData2) {
+      setDestination(JSON.parse(storedData2))
+      destinationRef.current = JSON.parse(storedData2);
+    }
+  };
+  useFocusEffect(
+    useCallback(() => {
+      fetchDataLocal();
 
+    }, [])
+  );
+  
   const fetchData = async () => {
     try {
       const response = await axios.get(`https://ontrak.live/MapApi/GetMapByID?id=${MAP_ID}`, {
@@ -291,9 +397,22 @@ export default function MapScreen() {
       return null;
     }
   };
-const moveScreenSearch = () => {
-  navigation.navigate('explore');
-}
+  const moveScreenSearch = (value) => {
+   let tagInfoData =  tagInfo.current.map((tag)=>  
+    {
+      return {id:tag.data.id, tagID: tag.data.tagID, icon: tag.data.icon, tagName: tag.data.tagName,x: tag.data.x,y: tag.data.y,status:tag.data.status}
+    });
+    navigation.navigate("search", {value:value, tagInfo:JSON.stringify(tagInfoData) })
+  }
+  const closeFinding= async () =>{
+    const storedData = await AsyncStorage.setItem('selectedStart','');
+   
+    const storedData2 = await AsyncStorage.setItem('selectedDestination','');
+    setStart(null);
+    setDestination(null)
+    startRef.current = null;
+    destinationRef.current = null
+  }
   return (
     <View style={{ flex: 1 }} >
 
@@ -308,20 +427,60 @@ const moveScreenSearch = () => {
 
       </View>
       <SafeAreaView style={styles.safeAreaView}>
-      <View style={styles.searchContainer}>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={styles.icon}
-        />
-        <TextInput
-            editable={false}
-          style={styles.searchInput}
-          placeholder="Tìm kiếm địa điểm"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onTouchStart={moveScreenSearch}
-        />
-      </View>
+        <View style={styles.container}>
+          <View style={styles.infoBox}>
+            <View style={styles.itemIconStart}>
+              <View style={styles.blueCircle}>
+                <View style={styles.blueDot} />
+              </View>
+              <View style={styles.dotsContainer}>
+                <View style={styles.dot} />
+                <View style={styles.dot} />
+                <View style={styles.dot} />
+              </View>
+              <View style={styles.whiteCircle}>
+                <View style={styles.redDot} />
+              </View>
+            </View>
+            <View style={styles.containerSearch}>
+
+              <View
+                style={styles.row}
+                onTouchStart={(event) => moveScreenSearch("start")}
+              >
+                <Text style={styles.title}>{start?.tagName ?? "Vị trí của bạn"}</Text>
+              </View>
+
+              <View style={styles.middleContainer}>
+                <View style={styles.separator} />
+              </View>
+
+              <View
+                style={styles.row}
+                onTouchStart={(event) => moveScreenSearch("destination")}>
+                <Text style={styles.address}>{destination?.tagName ?? "Điểm đến"}</Text>
+              </View>
+            </View>
+
+            <View style={styles.itemIconEnd}>
+              <View>
+                {finding ? (
+                  <Ionicons name="close" size={26} color="#000"  onPress={closeFinding}/>
+
+                ) : (
+                  <View></View>
+                )}
+
+              </View>
+              <View style={styles.dotsContainer}>
+
+              </View>
+
+
+
+            </View>
+          </View>
+        </View>
       </SafeAreaView>
 
     </View>
@@ -330,50 +489,140 @@ const moveScreenSearch = () => {
 }
 
 const styles = StyleSheet.create({
-  safeAreaView:{
+  safeAreaView: {
     position: 'absolute',
     width: '100%',
   },
-  searchContainer: {
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingLeft: 20,
+    paddingRight: 20,
+  },
+  infoBox: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 20,
-    marginLeft: 20,
-    marginRight: 20,
-    
-    backgroundColor: 'white',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    flex: 1,
+    width: "100%",
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingLeft: 5,
+    backgroundColor: "white",
+    borderRadius: 20,
     elevation: 5, // Đổ bóng cho Android
     shadowColor: '#000', // Đổ bóng cho iOS
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
   },
-  searchInput: {
-    height: 40,
-    fontSize: 16,
-  },
-  titleContainer: {
-    flexDirection: 'row',
+  itemIconStart: {
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+    marginLeft: 20,
+
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  /* --- Chấm xanh có viền mờ --- */
+  blueCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "rgba(0, 122, 255, 0.2)", // Viền xanh mờ
+    justifyContent: "center",
+    alignItems: "center",
+
+
   },
-  icon: {
-    width: 40,
-    height: 40,
-    marginHorizontal: 5,
+  blueDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#007AFF", // Màu xanh đậm
+    justifyContent: "center",
+    alignItems: "center",
+
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  }
+  /* --- Khu vực giữa (Ba chấm + Đường phân cách) --- */
+
+  dotsContainer: {
+    width: 20,
+    alignItems: "center",
+    marginBottom: 5,
+    marginTop: 5,
+
+
+  },
+  dot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: "#666",
+    marginVertical: 2,
+  },
+
+  /* --- Icon vị trí đỏ --- */
+  redMarker: {
+    width: 20,
+    height: 25,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  whiteCircle: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "red",
+  },
+  redDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "red",
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 5,
+    height: 40
+  },
+  containerSearch: {
+    flex: 1,
+    marginLeft: 10,
+    marginRight: 10,
+
+  },
+  middleContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    height: 5
+  },
+  separator: {
+    width: "100%",
+    height: 1,
+    backgroundColor: "#DDD",
+  },
+  title: {
+    fontSize: 16,
+    color: "#007AFF",
+
+  },
+  address: {
+    paddingTop: 2,
+    fontSize: 16,
+    color: "#333",
+  },
+
+  itemIconEnd: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 20,
+
+  },
 });
+
