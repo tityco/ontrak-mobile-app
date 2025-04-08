@@ -5,9 +5,10 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
-import { View, PanResponder, Dimensions, StyleSheet, ActivityIndicator, Text, TextInput, Image, TouchableOpacity, ImageBackground, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
-
+import { View, PanResponder, Dimensions, StyleSheet, ActivityIndicator, Text, TextInput, Image, TouchableOpacity, ImageBackground, KeyboardAvoidingView, ScrollView, Platform, Button, ViewStyle } from 'react-native';
+import { Provider } from 'react-redux';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import storeToolkit from '@/redux-toolkit/storeToolkit';
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -33,19 +34,22 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
-
+  const onClick = () => {
+    console.log('Button clicked');
+  }
   if (!loaded) {
     return null;
   }
-
   return (
+  <Provider store={storeToolkit}>
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       {!login ? (
     
-          <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <ScrollView contentContainerStyle = {styles.scrollContainer}>
+           
             <ImageBackground
               source={require('@/assets/images/ios-blue-background2.png')}
-              style={styles.background}
+              style = {styles.background}
               resizeMode="cover"
             >
               <View style={styles.container}>
@@ -69,11 +73,10 @@ export default function RootLayout() {
               </View>
             </ImageBackground>
           </ScrollView>
-   
-
       ) : (
 
         <Stack>
+        
           {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
@@ -82,11 +85,13 @@ export default function RootLayout() {
 
       <StatusBar style="auto" />
     </ThemeProvider>
+  </Provider>
+
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: { flexGrow: 1},
+  scrollContainer: { flexGrow: 1} as ViewStyle,
   background: {
     flex: 1
   },

@@ -1,17 +1,15 @@
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
-import { MAP_ID,USER_ID } from '@/constants/Constant';
+import { API_URL, MAP_ID,USER_ID } from '@/constants/Constant';
 
 class SignalRService {
   onDisconnectCallback:any = null;
   connection:any =  null;
-
   constructor() {
     this.connection = null;
-    
   }
-  public  async startConnection() {
+  public async startConnection() {
     this.connection = new HubConnectionBuilder()
-      .withUrl("https://ontrak.live/streamDataHub", {
+      .withUrl(`${API_URL}/streamDataHub`, {
         skipNegotiation: true,
         transport: 1, // WebSockets (fix lỗi trong React Native)
       })
@@ -20,6 +18,8 @@ class SignalRService {
       .build();
 
     this.connection.onclose(async (error:any) => {
+      console.log("SignalR Disconnected:");
+      
       if (this.onDisconnectCallback) {
         this.onDisconnectCallback(error);
       }
@@ -28,7 +28,6 @@ class SignalRService {
       await this.connection.start();
       console.log(" SignalR Connected!");
       await this.JoinGroup(MAP_ID, USER_ID);
-
 
     } catch (error) {
       console.error(" SignalR Connection Error:", error);

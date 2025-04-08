@@ -20,6 +20,7 @@
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
+    "@reduxjs/toolkit": "^2.6.1",
     "@tweenjs/tween.js": "^25.0.0",
     "axios": "^1.8.1",
     "expo": "~52.0.37",
@@ -47,6 +48,10 @@
     "react-native-screens": "~4.4.0",
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
+    "react-redux": "^9.2.0",
+    "redux": "^5.0.1",
+    "redux-devtools-extension": "^2.13.9",
+    "reselect": "^5.1.1",
     "three": "^0.166.0"
   },
   "devDependencies": {
