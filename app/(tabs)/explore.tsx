@@ -5,7 +5,7 @@ import { ExternalLink } from '@/components/ExternalLink';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { IconSymbol } from '@/components/IconSymbol';
 import { useNavigation } from 'expo-router';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';

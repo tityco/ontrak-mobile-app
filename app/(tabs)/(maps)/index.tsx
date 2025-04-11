@@ -17,7 +17,7 @@ import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { MAP_ID, USER_ID, MOVE_SPEED } from '@/constants/Constant';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { Group, Tween, Easing, update } from '@tweenjs/tween.js';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { IconSymbol } from '@/components/IconSymbol';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -37,6 +37,7 @@ import mapInfoSlice from '@/redux-toolkit/slice/mapInfo-slice';
 import { useGetListTagInfoQuery } from '@/redux-toolkit/api/tagInfio-api';
 import listTagsInfoSlice from '@/redux-toolkit/slice/lsittagsInfo-slice';
 import { isLoading } from 'expo-font';
+import MapViewComponent from '@/components/ui/map-view.components';
 
 
 
@@ -142,7 +143,7 @@ export default function MapScreen() {
 
   return (
     <View style={{ flex: 1 }} >
-
+      <MapViewComponent></MapViewComponent>
       <View style={{ flex: 1 }} {...panResponder.panHandlers}>
         {!loaded ? (
           <ActivityIndicator size="large" color="#00ff00" style={{ flex: 1 }} />
