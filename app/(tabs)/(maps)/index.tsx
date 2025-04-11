@@ -29,105 +29,41 @@ import mapService from '@/services/map.service';
 import { loadTextureFromURL, updatePositonTag } from '@/_helper/app/tabs/maps/index-heper';
 import threeMapService from '@/services/three-map.service';
 import { useDispatch, useSelector } from 'react-redux';
-import mapInfoSlice from '@/redux-toolkit/mapInfoReducerSliceTookit';
-import { mapInfoSelector, tagsInfoSelector } from '@/redux-toolkit/selectorToolkit';
-import findingSlice from '@/redux-toolkit/findingReducerSliceTookit';
+import { mapInfoSelector, tagsInfoSelector } from '@/redux-toolkit/selector/selector-toolkit';
 import tagService from '@/services/tag.service';
-import tagsInfoSlice from '@/redux-toolkit/tagsInfoReducerSliceToolkit';
+import { useGetMapInfoQuery } from '@/redux-toolkit/api/mapInfo-api';
+import findingSlice from '@/redux-toolkit/slice/finding-slice';
+import mapInfoSlice from '@/redux-toolkit/slice/mapInfo-slice';
+import { useGetListTagInfoQuery } from '@/redux-toolkit/api/tagInfio-api';
+import listTagsInfoSlice from '@/redux-toolkit/slice/lsittagsInfo-slice';
+import { isLoading } from 'expo-font';
+
+
 
 export default function MapScreen() {
 
-  const navigation = useNavigation();
-  const [loaded, setLoaded] = useState(false);
-
   const dispatch = useDispatch();
+  const navigation = useNavigation();
+
+  const { data: mapInfo, error: mapError, isLoading: isLoadingMap } = useGetMapInfoQuery(MAP_ID);
+  const { data: listTagInfo, error: tagError, isLoading: isLoadingTag} = useGetListTagInfoQuery(MAP_ID);
+  const isLoadingData = isLoadingMap || isLoadingTag;
+
+
   const mapInfoStore = useSelector(mapInfoSelector);
   const tagsInfoStore = useSelector(tagsInfoSelector);
   
-  const sceneRef = useRef(null);
+  const [loaded, setLoaded] = useState(true);
   const { width, height } = Dimensions.get('window');
-  const [start, setStart] = useState<any>(null);
-  const [destination, setDestination] = useState<any>(null);
   const [finding, setFinding] = useState(false);
-  const tagInfo = useRef<any>(null);
-  const startRef = useRef(null);
-  const destinationRef = useRef(null);
-  const linePath = useRef(null);
-
   const [serverTime, setServerTime] = useState("Connecting...")
 
-  let dt = (new Date()).getTime();
-
   const onContextCreate = async (gl: any) => {
-    if (!loaded && !mapInfoStore) return;
-    dispatch(findingSlice.actions.changeStart(''));
-    dispatch(findingSlice.actions.chageDestination(''));
-    ///start threemap
-    threeMapService.contextCreate(gl, width, height, loaded, mapInfoStore, tagsInfoStore);
+    if (!isLoading && !mapInfoStore) return;
+    dispatch(findingSlice.actions.changeStart(null));
+    dispatch(findingSlice.actions.chageDestination(null));
+  //  await threeMapService.contextCreate(gl, width, height, mapInfoStore, tagsInfoStore);
   };
-  const genFindPath = () => {
-
-    if (!startRef.current || !destinationRef.current) {
-
-      if (linePath.current) {
-        sceneRef.current.remove(linePath.current);
-        linePath.current = null;
-      }
-
-      if (finding) {
-
-
-        setFinding(false);
-      }
-    } else {
-
-      if (!finding) {
-        setFinding(true);
-      }
-      let points = [
-        // new THREE.Vector3(82, 239, 10),  // Điểm đầu
-        // new THREE.Vector3(452, 105, 10),   // Điểm cuối
-      ];
-
-
-      // Tạo material cho đường thẳng
-      const material = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 5 });
-      if (sceneRef.current && tagInfo.current) {
-
-
-        let tagIndex = tagInfo.current.findIndex((item) => item.data.tagID == startRef.current.tagID);
-        let tagIndex2 = tagInfo.current.findIndex((item) => item.data.tagID == destinationRef.current.tagID);
-        if (tagIndex != -1 && tagIndex2 != -1 && sceneRef.current) {
-
-          let points = [
-            // new THREE.Vector3(82, 239, 10),  // Điểm đầu
-            // new THREE.Vector3(452, 105, 10),   // Điểm cuối
-          ];
-          points.push(new THREE.Vector3(parseInt(tagInfo.current[tagIndex].data.x), parseInt(tagInfo.current[tagIndex].data.y), 10))
-          points.push(new THREE.Vector3(parseInt(tagInfo.current[tagIndex2].data.x), parseInt(tagInfo.current[tagIndex2].data.y), 10))
-
-          const geometry = new THREE.BufferGeometry().setFromPoints(points);
-          console.log(points)
-          if (linePath.current)
-            sceneRef.current.remove(linePath.current);
-          // Tạo đường thẳng và thêm vào scene
-          const line = new THREE.Line(geometry, material);
-          linePath.current = line;
-          console.log(line)
-          sceneRef.current.add(line);
-          // points.push(new THREE.Vector3(0,0, 10));
-          // points.push(new THREE.Vector3(200, 200, 10))
-        }
-
-      }
-
-
-    }
-
-    // console.log("find")
-  }
-
-  const previousTouch = useRef({ x: 0, y: 0, distance: 0 });
 
   const panResponder = useRef(
     PanResponder.create({
@@ -147,12 +83,18 @@ export default function MapScreen() {
   ).current;
 
   const onReceivePosition = (data: any) => {
-    threeMapService.onReceivePosition(data);
+    //console.log((new Date()).toISOString(),">>>>>>>>>>>>>>>>")
+    //if(dispatch)
+      //sdispatch(listTagsInfoSlice.actions.updatePositonTag(data));
+   // threeMapService.onReceivePosition(data);
   }
   const onReceivePing = (data:any)=>{
-    setServerTime(data)
+    console.log(data);
+   // setServerTime(data)
   }
   const configSignalR = () => {
+    console.log("configSignalR");
+      
     SignalRService.onDisconnectCallback = (error: any) => {
       setServerTime("Connecting...")
     }
@@ -164,52 +106,38 @@ export default function MapScreen() {
     SignalRService.on("sendbasestation", (msg: any) => {
     })
   }
-  const initData = async () => {
-    setLoaded(false);
-    let dataMap = await mapService.getMapByID(MAP_ID);
-    let tags = await tagService.getTagByMapID(MAP_ID);
-    dispatch(mapInfoSlice.actions.changeMap(dataMap));
-    dispatch(tagsInfoSlice.actions.changeTags(tags));
+
+  const initData = () => {
+    dispatch(mapInfoSlice.actions.changeMap(mapInfo));
+    dispatch(listTagsInfoSlice.actions.changeTags(listTagInfo));
     configSignalR();
-    setLoaded(true);
+    setInterval(() => {
+      console.log((new Date()).toISOString(),SignalRService.connection._connectionState)
+    }, 500);
   }
+
   useEffect(() => {
-    initData();
+    setLoaded(false);
   }, []);
 
-  const fetchDataLocal = async () => {
-    const storedData = await AsyncStorage.getItem('selectedStart');
-    if (storedData) {
-      setStart(JSON.parse(storedData))
-      startRef.current = JSON.parse(storedData)
+  useEffect(() => {
+    if (!isLoadingData) {
+      initData();
+      setLoaded(true);
     }
-    const storedData2 = await AsyncStorage.getItem('selectedDestination');
-    if (storedData2) {
-      setDestination(JSON.parse(storedData2))
-      destinationRef.current = JSON.parse(storedData2);
-    }
-  };
+  }, [mapInfo, listTagInfo]);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchDataLocal();
-    }, [])
-  );
-
-
-  const moveScreenSearch = (value) => {
-    let tagInfoData = tagInfo.current.map((tag) => {
-      return { id: tag.data.id, tagID: tag.data.tagID, icon: tag.data.icon, tagName: tag.data.tagName, x: tag.data.x, y: tag.data.y, status: tag.data.status }
-    });
-    navigation.navigate("search", { value: value, tagInfo: JSON.stringify(tagInfoData) })
+  const moveScreenSearch = (value:any) => {
+    navigation.navigate("search", { value: value })
   }
+
   const closeFinding = async () => {
-    await AsyncStorage.setItem('selectedStart', '');
-    await AsyncStorage.setItem('selectedDestination', '');
-    setStart(null);
-    setDestination(null)
-    startRef.current = null;
-    destinationRef.current = null
+    // await AsyncStorage.setItem('selectedStart', '');
+    // await AsyncStorage.setItem('selectedDestination', '');
+    // setStart(null);
+    // setDestination(null)
+    // startRef.current = null;
+    // destinationRef.current = null
   }
 
   return (
@@ -217,13 +145,10 @@ export default function MapScreen() {
 
       <View style={{ flex: 1 }} {...panResponder.panHandlers}>
         {!loaded ? (
-
           <ActivityIndicator size="large" color="#00ff00" style={{ flex: 1 }} />
         ) : (
-
           <GLView style={{ flex: 1 }} onContextCreate={onContextCreate} />
         )}
-
       </View>
       <SafeAreaView style={styles.safeAreaView}>
         <View style={styles.container}>
@@ -242,12 +167,11 @@ export default function MapScreen() {
               </View>
             </View>
             <View style={styles.containerSearch}>
-
               <View
                 style={styles.row}
                 onTouchStart={(event) => moveScreenSearch("start")}
               >
-                <Text style={styles.title}>{start?.tagName ?? "Vị trí của bạn"}</Text>
+                <Text style={styles.title}>Vị trí của bạn</Text>
               </View>
 
               <View style={styles.middleContainer}>
@@ -257,7 +181,7 @@ export default function MapScreen() {
               <View
                 style={styles.row}
                 onTouchStart={(event) => moveScreenSearch("destination")}>
-                <Text style={styles.address}>{destination?.tagName ?? "Điểm đến"}</Text>
+                <Text style={styles.address}>Điểm đến</Text>
               </View>
             </View>
 
@@ -304,7 +228,7 @@ export default function MapScreen() {
                 style={styles.row}
                 onTouchStart={(event) => moveScreenSearch("start")}
               >
-                <Text style={styles.title}>{start?.tagName ?? "Vị trí của bạn"}</Text>
+                <Text style={styles.title}>Vị trí của bạn</Text>
               </View>
 
               <View style={styles.middleContainer}>
@@ -314,7 +238,7 @@ export default function MapScreen() {
               <View
                 style={styles.row}
                 onTouchStart={(event) => moveScreenSearch("destination")}>
-                <Text style={styles.address}>{destination?.tagName ?? "Điểm đến"}</Text>
+                <Text style={styles.address}>Điểm đến</Text>
               </View>
             </View>
 

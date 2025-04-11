@@ -10,21 +10,20 @@ import { useNavigation } from 'expo-router';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 // import { addTodoList, changeUserName } from '@/redux/actions';
-import userSlice  from '@/redux-toolkit/userReducerSliceToolkit';
-import { userNameSelector } from '@/redux/selector';
+
 export default function TabTwoScreen() {
 
   const navigation = useNavigation();
-
+``
   const [username, setUsername] = useState('Người dùng');
   const [email, setEmail] = useState('user@example.com');
   const [darkMode, setDarkMode] = useState(false);
   const dispatch = useDispatch();
 
-  const userNamestore = useSelector(userNameSelector);
-  console.log('Tên người dùng từ Redux:', userNamestore);
+
+  
   const saveSettings = () => {
-    dispatch(userSlice.actions.changeUserName(username));
+    
     console.log('Đã lưu:', { username, email, darkMode });
   
   };

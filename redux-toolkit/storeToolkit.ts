@@ -1,20 +1,20 @@
 
 import { configureStore } from "@reduxjs/toolkit";
-import todoSlice from "./todoReducerSliceTookit";
-import userSlice from "./userReducerSliceToolkit";
-import findingSlice from "./findingReducerSliceTookit";
-import mapInfoSlice from "./mapInfoReducerSliceTookit";
-import tagsInfolice from "./tagsInfoReducerSliceToolkit";
-import tagsInfoSlice from "./tagsInfoReducerSliceToolkit";
+import { api } from "./api/api";
+import findingSlice from "./slice/finding-slice";
+import mapInfoSlice from "./slice/mapInfo-slice";
+import listTagsInfoSlice from "./slice/lsittagsInfo-slice";
 
 
 const storeToolkit = configureStore({
   reducer: {
-    todoList: todoSlice.reducer,
-    user: userSlice.reducer,
     finding: findingSlice.reducer,
     mapInfo: mapInfoSlice.reducer,
-    tagsInfo: tagsInfoSlice.reducer,
+    listtagsInfo: listTagsInfoSlice.reducer,
+    [api.reducerPath]: api.reducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(api.middleware),
 })
+
 export default storeToolkit;

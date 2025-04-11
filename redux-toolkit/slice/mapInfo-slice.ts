@@ -1,13 +1,13 @@
 
 import { createSlice } from '@reduxjs/toolkit';
 
-const initSate = {}
+const initSate:any = null
 
 const mapInfoSlice = createSlice({
   name:'mapInfo',
   initialState: initSate,
   reducers: {
-    changeMap: (state, action) => {
+    changeMap: (state:any, action:any) => {
       return action.payload
     },
    

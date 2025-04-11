@@ -22,8 +22,8 @@ const styles = StyleSheet.create({
     paddingLeft: 5,
     backgroundColor: "white",
     borderRadius: 20,
-    elevation: 5, // Đổ bóng cho Android
-    shadowColor: '#000', // Đổ bóng cho iOS
+    elevation: 5, 
+    shadowColor: '#000', 
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
@@ -35,12 +35,12 @@ const styles = StyleSheet.create({
     marginLeft: 20,
 
   },
-  /* --- Chấm xanh có viền mờ --- */
+
   blueCircle: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "rgba(0, 122, 255, 0.2)", // Viền xanh mờ
+    backgroundColor: "rgba(0, 122, 255, 0.2)",
     justifyContent: "center",
     alignItems: "center",
 
@@ -50,12 +50,12 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#007AFF", // Màu xanh đậm
+    backgroundColor: "#007AFF", 
     justifyContent: "center",
     alignItems: "center",
 
   },
-  /* --- Khu vực giữa (Ba chấm + Đường phân cách) --- */
+
 
   dotsContainer: {
     width: 20,
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     marginVertical: 2,
   },
 
-  /* --- Icon vị trí đỏ --- */
+
   redMarker: {
     width: 20,
     height: 25,

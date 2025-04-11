@@ -8,10 +8,11 @@ class SignalRService {
     this.connection = null;
   }
   public async startConnection() {
+    console.log("startConnection")
     this.connection = new HubConnectionBuilder()
       .withUrl(`${API_URL}/streamDataHub`, {
         skipNegotiation: true,
-        transport: 1, // WebSockets (fix lỗi trong React Native)
+        transport: 1, 
       })
       .configureLogging(LogLevel.Information)
       .withAutomaticReconnect()
@@ -32,16 +33,15 @@ class SignalRService {
     } catch (error) {
       console.error(" SignalR Connection Error:", error);
     }
-
+    setInterval(() => {
+     // console.log((new Date()).toISOString(),this.connection._connectionState)
+    }, 500);
   }
   async JoinGroup(groupName:any, userid:any) {
    
     if (this.connection.state === 'Connected') {
-  
       await this.connection.invoke("joinGroup", groupName, userid);
-      console.log(`Joined group: ${groupName}`);
     } else {
-  
       console.log("SignalR is not connected");
     }
   }

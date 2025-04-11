@@ -1,6 +1,6 @@
 import { loadTextureFromURL, updatePositonTag } from "@/_helper/app/tabs/maps/index-heper";
 import { API_URL, MOVE_SPEED } from "@/constants/Constant";
-import { mapInfoSelector } from "@/redux-toolkit/selectorToolkit";
+import { mapInfoSelector } from "@/redux-toolkit/selector/selector-toolkit";
 import { Easing, Group, Tween } from "@tweenjs/tween.js";
 import { Renderer, THREE } from "expo-three";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,7 +18,8 @@ class ThreeMapService {
   previousTouch:any = {};
   width:any = 0;
   height:any = 0;
-  contextCreate = async (gl: any, width: any, height :any , loaded:any, mapInfo: any, tagsInfo:any[]) => {
+  dispatch:any = null ;
+  contextCreate = async (gl: any, width: any, height :any, mapInfo: any, tagsInfo:any[]) => {
     this.gl = gl;
     this.scene = this.initScene();
     this.width = width;
@@ -81,6 +82,7 @@ class ThreeMapService {
   }
 
   getFloor = async (mapInfo: any) :Promise<any>=> {
+
     let floorTexture = await loadTextureFromURL(`${API_URL}${mapInfo.imgLink.replace(/\\/g, "/")}`);
     floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
     floorTexture.repeat.set(1, 1);
@@ -110,7 +112,7 @@ class ThreeMapService {
       objTagDisplay.position.y = 0;
       var an = mapInfo.angleViewCamera;
       objTagDisplay.rotation.z = 3.14 * (180 - an) / 180;
-      objTagDisplay.position.z = 5;//10 + 2 * (data.length - i);
+      objTagDisplay.position.z = 5;
       objTagDisplay.scale.x = this.scaleTag;
       objTagDisplay.scale.y = this.scaleTag;
       objTagDisplay.position.x = tagsInfo[i].x;
@@ -125,9 +127,10 @@ class ThreeMapService {
   }
 
   moveBoxAlongPath = (tag:any) => {
+    if(tag.data.serial == '9000') {
+      //console.log("x: ",tag.obj3D.position.x,  tag.data.x, "y: ",tag.obj3D.position.y,  tag.data.y)
+    }
     const coords = { x: tag.obj3D.position.x, y: tag.obj3D.position.y };
-    if( tag.data.x &&  tag.data.y) 
-      console.log("moveBoxAlongPath",tag.data.tagID, tag.data.x, tag.data.y);
     const tween = new Tween(coords, this.tweenGroup)
       .to({ x: tag.data.x, y: tag.data.y }, MOVE_SPEED)
       .easing(Easing.Quadratic.Out)
@@ -140,12 +143,18 @@ class ThreeMapService {
       .start();
   }
   onReceivePosition = (data:any) => {
+
     this.tagInfoThree = updatePositonTag(data, this.tagInfoThree);
+    let tagIndex =  this.tagInfoThree.findIndex((item:any) => item.data.serial == '9000');
+    if (tagIndex != -1) {
+        console.log(">>>>>>>>>>>2", this.tagInfoThree[tagIndex].data.x,this.tagInfoThree[tagIndex].data.y)
+    }
+ 
+   
   }
 
   /// Move and zoom render
   onPanResponderGrant = (event: any, gesture: any) => {
-    console.log("onPanResponderGrant>>>>>>>>>>>", gesture.numberActiveTouches);
     if (gesture.numberActiveTouches === 2) {
       const [touch1, touch2] = event.nativeEvent.touches;
       const dx = touch1.pageX - touch2.pageX;
@@ -202,6 +211,62 @@ class ThreeMapService {
   onPanResponderRelease = () => {
     this.previousTouch.distance = null;
   }
+  // genFindPath = () => {
+  
+  //     if (!startRef.current || !destinationRef.current) {
+  
+  //       if (linePath.current) {
+  //         sceneRef.current.remove(linePath.current);
+  //         linePath.current = null;
+  //       }
+  
+  //       if (finding) {
+  //         setFinding(false);
+  //       }
+  //     } else {
+  
+  //       if (!finding) {
+  //         setFinding(true);
+  //       }
+  //       let points = [
+  //         // new THREE.Vector3(82, 239, 10),  // Điểm đầu
+  //         // new THREE.Vector3(452, 105, 10),   // Điểm cuối
+  //       ];
+  
+  
+  //       // Tạo material cho đường thẳng
+  //       const material = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 5 });
+  //       if (sceneRef.current && tagInfo.current) {
+  
+  
+  //         let tagIndex = tagInfo.current.findIndex((item) => item.data.tagID == startRef.current.tagID);
+  //         let tagIndex2 = tagInfo.current.findIndex((item) => item.data.tagID == destinationRef.current.tagID);
+  //         if (tagIndex != -1 && tagIndex2 != -1 && sceneRef.current) {
+  
+  //           let points = [
+  //             // new THREE.Vector3(82, 239, 10),  // Điểm đầu
+  //             // new THREE.Vector3(452, 105, 10),   // Điểm cuối
+  //           ];
+  //           points.push(new THREE.Vector3(parseInt(tagInfo.current[tagIndex].data.x), parseInt(tagInfo.current[tagIndex].data.y), 10))
+  //           points.push(new THREE.Vector3(parseInt(tagInfo.current[tagIndex2].data.x), parseInt(tagInfo.current[tagIndex2].data.y), 10))
+  
+  //           const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  //           console.log(points)
+  //           if (linePath.current)
+  //             sceneRef.current.remove(linePath.current);
+  
+  //           const line = new THREE.Line(geometry, material);
+  //           linePath.current = line;
+  //           console.log(line)
+  //           sceneRef.current.add(line);
+  //         }
+  
+  //       }
+  
+  
+  //     }
+  
+  //   }
 }
 
 export default new ThreeMapService();
