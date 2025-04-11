@@ -37,7 +37,7 @@ import mapInfoSlice from '@/redux-toolkit/slice/mapInfo-slice';
 import { useGetListTagInfoQuery } from '@/redux-toolkit/api/tagInfio-api';
 import listTagsInfoSlice from '@/redux-toolkit/slice/lsittagsInfo-slice';
 import { isLoading } from 'expo-font';
-import MapViewComponent from '@/components/ui/map-view.components';
+import MapViewComponent from '@/components/ui/map-view.component';
 
 
 
