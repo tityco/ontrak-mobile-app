@@ -2,10 +2,6 @@ import { Link, Stack } from 'expo-router';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
 
-
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-
 export default function NotFoundScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');

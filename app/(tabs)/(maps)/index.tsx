@@ -1,6 +1,5 @@
 
 
-import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import * as FileSystem from 'expo-file-system';
@@ -17,7 +16,6 @@ import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { MAP_ID, USER_ID, MOVE_SPEED } from '@/constants/Constant';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { Group, Tween, Easing, update } from '@tweenjs/tween.js';
-import { IconSymbol } from '@/components/IconSymbol';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -143,7 +141,7 @@ export default function MapScreen() {
 
   return (
     <View style={{ flex: 1 }} >
-      <MapViewComponent></MapViewComponent>
+      {/* <MapViewComponent></MapViewComponent> */}
       <View style={{ flex: 1 }} {...panResponder.panHandlers}>
         {!loaded ? (
           <ActivityIndicator size="large" color="#00ff00" style={{ flex: 1 }} />
