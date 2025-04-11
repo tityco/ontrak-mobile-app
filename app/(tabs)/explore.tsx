@@ -28,7 +28,7 @@ export default function TabTwoScreen() {
     <SafeAreaView style={styles.container}>
       
     <Text style={styles.title}>Cài đặt người dùng</Text>
-    <Text>{userNamestore}</Text>
+    {/* <Text>{userNamestore}</Text> */}
     <View style={styles.inputContainer}>
       <Text>Tên:</Text>
       <TextInput
