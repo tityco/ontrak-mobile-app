@@ -1,7 +1,18 @@
 import { StyleSheet } from "react-native";
 
 
-const styles = StyleSheet.create({
+const stylesMap = StyleSheet.create({
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    zIndex: 999,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   safeAreaView: {
     position: 'absolute',
     width: '100%',
@@ -144,4 +155,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default styles;
+export default stylesMap;

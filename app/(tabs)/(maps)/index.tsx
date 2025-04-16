@@ -22,17 +22,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LightSpeedInLeft } from 'react-native-reanimated';
 import SignalRService from '@/services/signalr.service'
 
-import styles from '@/style_sheet/app/tabs/map';
+import stylesMap from '@/style_sheet/app/tabs/map';
 import { loadTextureFromURL, updatePositonTag } from '@/_helper/app/tabs/maps/index-heper';
 import threeMapService from '@/services/three-map.service';
 import { useDispatch, useSelector } from 'react-redux';
-import { mapInfoSelector, tagsInfoSelector } from '@/redux-toolkit/selector/selector-toolkit';
+import { isLoadingMapScreenSelector, mapInfoSelector, tagsInfoSelector } from '@/redux-toolkit/selector/selector-toolkit';
 import { useGetMapInfoQuery } from '@/redux-toolkit/api/mapInfo-api';
 import findingSlice from '@/redux-toolkit/slice/finding-slice';
 import mapInfoSlice from '@/redux-toolkit/slice/mapInfo-slice';
 import { useGetListTagInfoQuery } from '@/redux-toolkit/api/tagInfio-api';
 import listTagsInfoSlice from '@/redux-toolkit/slice/lsittagsInfo-slice';
-import MapViewComponent from '@/components/ui/map-view.component';
+import MapViewComponent from '@/components/map-view.component';
 import loadingSlice from '@/redux-toolkit/slice/loading-slice';
 
 export default function MapScreen() {
@@ -43,7 +43,7 @@ export default function MapScreen() {
   const { data: mapInfo, error: mapError, isLoading: isLoadingMap } = useGetMapInfoQuery(MAP_ID);
   const { data: listTagInfo, error: tagError, isLoading: isLoadingTag} = useGetListTagInfoQuery(MAP_ID);
   const isLoadingData = isLoadingMap || isLoadingTag;
-
+  const isLoading = useSelector(isLoadingMapScreenSelector);
   const mapInfoStore = useSelector(mapInfoSelector);
   const tagsInfoStore = useSelector(tagsInfoSelector);
   
@@ -53,11 +53,11 @@ export default function MapScreen() {
   const [serverTime, setServerTime] = useState("Connecting...")
 
   useEffect(() => {
-    dispatch(loadingSlice.actions.setLoadingAll('loadimap'));
+    dispatch(loadingSlice.actions.setLoadingMapScreen('loadingmap'));
   },[]);
   useEffect(() => {
     if(!isLoadingMap && !isLoadingTag) {
-      dispatch(loadingSlice.actions.removeLoadingAll('loadimap'));
+      dispatch(loadingSlice.actions.removeLoadingMapScreen('loadingmap'));
     }
   },[isLoadingMap, isLoadingTag]);
 
@@ -138,43 +138,49 @@ export default function MapScreen() {
 
   return (
     <View style={{ flex: 1 }} >
+      {isLoading && (
+        <View style={stylesMap.loadingContainer}>
+          <ActivityIndicator size="large" color="#000000" />
+        </View>
+      )}
       <View style={{ flex: 1 }} {...panResponder.panHandlers}>
         <GLView style={{ flex: 1 }} onContextCreate={onContextCreate} />
       </View>
-      <SafeAreaView style={styles.safeAreaView}>
-        <View style={styles.container}>
-          <View style={styles.infoBox}>
-            <View style={styles.itemIconStart}>
-              <View style={styles.blueCircle}>
-                <View style={styles.blueDot} />
+
+      <SafeAreaView style={stylesMap.safeAreaView}>
+        <View style={stylesMap.container}>
+          <View style={stylesMap.infoBox}>
+            <View style={stylesMap.itemIconStart}>
+              <View style={stylesMap.blueCircle}>
+                <View style={stylesMap.blueDot} />
               </View>
-              <View style={styles.dotsContainer}>
-                <View style={styles.dot} />
-                <View style={styles.dot} />
-                <View style={styles.dot} />
+              <View style={stylesMap.dotsContainer}>
+                <View style={stylesMap.dot} />
+                <View style={stylesMap.dot} />
+                <View style={stylesMap.dot} />
               </View>
-              <View style={styles.whiteCircle}>
-                <View style={styles.redDot} />
+              <View style={stylesMap.whiteCircle}>
+                <View style={stylesMap.redDot} />
               </View>
             </View>
-            <View style={styles.containerSearch}>
+            <View style={stylesMap.containerSearch}>
               <View
-                style={styles.row}
+                style={stylesMap.row}
                 onTouchStart={(event) => moveScreenSearch("start")}>
-                <Text style={styles.title}>Vị trí của bạn</Text>
+                <Text style={stylesMap.title}>Vị trí của bạn</Text>
               </View>
 
-              <View style={styles.middleContainer}>
-                <View style={styles.separator} />
+              <View style={stylesMap.middleContainer}>
+                <View style={stylesMap.separator} />
               </View>
               <View
-                style={styles.row}
+                style={stylesMap.row}
                 onTouchStart={(event) => moveScreenSearch("destination")}>
-                <Text style={styles.address}>Điểm đến</Text>
+                <Text style={stylesMap.address}>Điểm đến</Text>
               </View>
             </View>
 
-            <View style={styles.itemIconEnd}>
+            <View style={stylesMap.itemIconEnd}>
               <View>
                 {finding ? (
                   <Ionicons name="close" size={26} color="#000" onPress={closeFinding} />
@@ -182,70 +188,14 @@ export default function MapScreen() {
                   <View></View>
                 )}
               </View>
-              <View style={styles.dotsContainer}>
+              <View style={stylesMap.dotsContainer}>
               </View>
             </View>
           </View>
         </View>
-
       </SafeAreaView>
-      <SafeAreaView style={styles.safeAreaView}>
-        <View style={styles.container}>
-          <View style={styles.infoBox}>
-            <View style={styles.itemIconStart}>
-              <View style={styles.blueCircle}>
-                <View style={styles.blueDot} />
-              </View>
-              <View style={styles.dotsContainer}>
-                <View style={styles.dot} />
-                <View style={styles.dot} />
-                <View style={styles.dot} />
-              </View>
-              <View style={styles.whiteCircle}>
-                <View style={styles.redDot} />
-              </View>
-            </View>
-            <View style={styles.containerSearch}>
-
-              <View
-                style={styles.row}
-                onTouchStart={(event) => moveScreenSearch("start")}
-              >
-                <Text style={styles.title}>Vị trí của bạn</Text>
-              </View>
-
-              <View style={styles.middleContainer}>
-                <View style={styles.separator} />
-              </View>
-
-              <View
-                style={styles.row}
-                onTouchStart={(event) => moveScreenSearch("destination")}>
-                <Text style={styles.address}>Điểm đến</Text>
-              </View>
-            </View>
-
-            <View style={styles.itemIconEnd}>
-              <View>
-                {finding ? (
-                  <Ionicons name="close" size={26} color="#000" onPress={closeFinding} />
-
-                ) : (
-                  <View></View>
-                )}
-
-              </View>
-              <View style={styles.dotsContainer}>
-
-              </View>
-
-
-
-            </View>
-          </View>
-        </View>
-      </SafeAreaView>
-      <View style={styles.containertime}>
+      
+      <View style={stylesMap.containertime}>
         <Text>{serverTime}</Text>
       </View>
     </View>

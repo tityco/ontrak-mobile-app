@@ -7,5 +7,6 @@ export const selectedDestinationSelector = (state: any) => state.finding.selecte
 export const mapInfoSelector = (state: any) => state.mapInfo
 export const tagsInfoSelector = (state: any) => state.listtagsInfo
 export const isLoadingAllSelector = (state: any) => state.loading.isLoadingAll
+export const isLoadingMapScreenSelector = (state: any) => state.loading.isLoadingMapScreen
 export const isLoginSelector = (state: any) => state.user.isLogin
 export const userSelector = (state: any) => state.user.user
