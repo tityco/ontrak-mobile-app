@@ -82,7 +82,6 @@ class ThreeMapService {
   }
 
   getFloor = async (mapInfo: any) :Promise<any>=> {
-
     let floorTexture = await loadTextureFromURL(`${API_URL}${mapInfo.imgLink.replace(/\\/g, "/")}`);
     floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
     floorTexture.repeat.set(1, 1);
@@ -99,6 +98,7 @@ class ThreeMapService {
     floor.rotation.z = mapInfo.angleViewMap * Math.PI / 180;
     return floor;
   }
+
   addTags = async (mapInfo:any, tagsInfo:any[]) => {
     for (var i = 0; i < tagsInfo.length; i++) {
       let tagTexture = await loadTextureFromURL(`${API_URL}${tagsInfo[i].icon.replace(/\\/g, "/")}`);
@@ -117,7 +117,7 @@ class ThreeMapService {
       objTagDisplay.scale.y = this.scaleTag;
       objTagDisplay.position.x = tagsInfo[i].x;
       objTagDisplay.position.y = tagsInfo[i].y;
-      objTagDisplay.visible = false;
+      objTagDisplay.visible =  tagsInfo[i].visible ?? false;
       let tagI = { obj3D: objTagDisplay, data: tagsInfo[i] };
       this.moveBoxAlongPath(tagI)
       this.tagInfoThree.push(tagI);
@@ -127,9 +127,6 @@ class ThreeMapService {
   }
 
   moveBoxAlongPath = (tag:any) => {
-    if(tag.data.serial == '9000') {
-      //console.log("x: ",tag.obj3D.position.x,  tag.data.x, "y: ",tag.obj3D.position.y,  tag.data.y)
-    }
     const coords = { x: tag.obj3D.position.x, y: tag.obj3D.position.y };
     const tween = new Tween(coords, this.tweenGroup)
       .to({ x: tag.data.x, y: tag.data.y }, MOVE_SPEED)
@@ -141,16 +138,6 @@ class ThreeMapService {
         this.moveBoxAlongPath(tag);
       })
       .start();
-  }
-  onReceivePosition = (data:any) => {
-
-    this.tagInfoThree = updatePositonTag(data, this.tagInfoThree);
-    let tagIndex =  this.tagInfoThree.findIndex((item:any) => item.data.serial == '9000');
-    if (tagIndex != -1) {
-        console.log(">>>>>>>>>>>2", this.tagInfoThree[tagIndex].data.x,this.tagInfoThree[tagIndex].data.y)
-    }
- 
-   
   }
 
   /// Move and zoom render

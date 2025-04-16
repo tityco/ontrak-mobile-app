@@ -2,13 +2,14 @@ import stySearchTagComp from "@/style_sheet/components/search-tag/search-tag";
 import { Ionicons } from "@expo/vector-icons";
 import { GLView } from "expo-gl";
 import { useNavigation } from "expo-router";
+import { useState } from "react";
 import { View, Text, ActivityIndicator, SafeAreaView } from "react-native";
 import { useDispatch } from "react-redux";
 
 
 export default function SearchTagComponent() {
   const navigation = useNavigation();
-
+  const [finding, setFinding] = useState(false);
   
   const moveScreenSearch = (value: any) => {
     navigation.navigate("search", { value: value })

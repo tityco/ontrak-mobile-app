@@ -39,13 +39,12 @@ import SearchTagComponent from '@/components/search-tag/search-tag.component';
 export default function MapScreen() {
 
   const dispatch = useDispatch();
-
+  const LOAIND_MAP = 'loadingmap';
   const { data: mapInfo, error: mapError, isLoading: isLoadingMap } = useGetMapInfoQuery(MAP_ID);
   const { data: listTagInfo, error: tagError, isLoading: isLoadingTag} = useGetListTagInfoQuery(MAP_ID);
   const isLoadingData = isLoadingMap || isLoadingTag;
   const isLoading = useSelector(isLoadingMapScreenSelector);
-  const mapInfoStore = useSelector(mapInfoSelector);
-  const tagsInfoStore = useSelector(tagsInfoSelector);
+
   
   const [loaded, setLoaded] = useState(true);
   const { width, height } = Dimensions.get('window');
@@ -53,47 +52,20 @@ export default function MapScreen() {
   const [serverTime, setServerTime] = useState("Connecting...")
 
   useEffect(() => {
-    dispatch(loadingSlice.actions.setLoadingMapScreen('loadingmap'));
+    dispatch(loadingSlice.actions.setLoadingMapScreen(LOAIND_MAP));
   },[]);
   useEffect(() => {
     if(!isLoadingMap && !isLoadingTag) {
-      dispatch(loadingSlice.actions.removeLoadingMapScreen('loadingmap'));
+      dispatch(loadingSlice.actions.removeLoadingMapScreen(LOAIND_MAP));
     }
   },[isLoadingMap, isLoadingTag]);
 
-  const onContextCreate = async (gl: any) => {
-    if (!mapInfoStore) return;
-    dispatch(findingSlice.actions.changeStart(null));
-    dispatch(findingSlice.actions.chageDestination(null));
-    //await threeMapService.contextCreate(gl, width, height, mapInfoStore, tagsInfoStore);
-  };
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: () => true,
-
-      onPanResponderGrant: (event, gesture) => {
-        threeMapService.onPanResponderGrant(event, gesture);
-      },
-
-      onPanResponderMove: (event, gesture) => {
-        threeMapService.onPanResponderMove(event, gesture);
-      },
-      onPanResponderRelease: () => {
-        threeMapService.onPanResponderRelease();
-      },
-    })
-  ).current;
 
   const onReceivePosition = (data: any) => {
-    //console.log((new Date()).toISOString(),">>>>>>>>>>>>>>>>")
-    //if(dispatch)
-    //sdispatch(listTagsInfoSlice.actions.updatePositonTag(data));
-    // threeMapService.onReceivePosition(data);
+    dispatch(listTagsInfoSlice.actions.updatePositonTag(data));
   }
   const onReceivePing = (data:any)=>{
-    //console.log(data);
-   // setServerTime(data)
+   setServerTime(data)
   }
   const configSignalR = () => {
     SignalRService.onDisconnectCallback = (error: any) => {
@@ -124,16 +96,6 @@ export default function MapScreen() {
   }, [mapInfo, listTagInfo]);
 
 
-
-  const closeFinding = async () => {
-    // await AsyncStorage.setItem('selectedStart', '');
-    // await AsyncStorage.setItem('selectedDestination', '');
-    // setStart(null);
-    // setDestination(null)
-    // startRef.current = null;
-    // destinationRef.current = null
-  }
-
   return (
     <View style={{ flex: 1 }} >
       {isLoading && (
@@ -141,9 +103,7 @@ export default function MapScreen() {
           <ActivityIndicator size="large" color="#000000" />
         </View>
       )}
-      <View style={{ flex: 1 }} {...panResponder.panHandlers}>
-        <GLView style={{ flex: 1 }} onContextCreate={onContextCreate} />
-      </View>
+      <MapViewComponent />
       <SearchTagComponent/>
   
       <View style={styMap.containerTime}>
