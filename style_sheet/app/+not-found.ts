@@ -2,7 +2,7 @@
 import { StyleSheet } from "react-native";
 
 
-const stylesNotFound = StyleSheet.create({
+const styNotFound = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
@@ -14,4 +14,4 @@ const stylesNotFound = StyleSheet.create({
     paddingVertical: 15,
   },
 });
-export default stylesNotFound;
+export default styNotFound;

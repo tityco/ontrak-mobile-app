@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native";
 
 
 
-const stylesRoot = StyleSheet.create({
+const styRoot = StyleSheet.create({
   scrollContainer: { flexGrow: 1 },
   background: {
     flex: 1
@@ -38,4 +38,4 @@ const stylesRoot = StyleSheet.create({
     alignItems: 'center'
   }
 });
-export default stylesRoot;
+export default styRoot;

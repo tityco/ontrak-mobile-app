@@ -22,7 +22,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LightSpeedInLeft } from 'react-native-reanimated';
 import SignalRService from '@/services/signalr.service'
 
-import stylesMap from '@/style_sheet/app/tabs/map';
 import { loadTextureFromURL, updatePositonTag } from '@/_helper/app/tabs/maps/index-heper';
 import threeMapService from '@/services/three-map.service';
 import { useDispatch, useSelector } from 'react-redux';
@@ -32,13 +31,14 @@ import findingSlice from '@/redux-toolkit/slice/finding-slice';
 import mapInfoSlice from '@/redux-toolkit/slice/mapInfo-slice';
 import { useGetListTagInfoQuery } from '@/redux-toolkit/api/tagInfio-api';
 import listTagsInfoSlice from '@/redux-toolkit/slice/lsittagsInfo-slice';
-import MapViewComponent from '@/components/map-view.component';
+import MapViewComponent from '@/components/map-view/map-view.component';
 import loadingSlice from '@/redux-toolkit/slice/loading-slice';
+import styMap from '@/style_sheet/app/tabs/map';
+import SearchTagComponent from '@/components/search-tag/search-tag.component';
 
 export default function MapScreen() {
 
   const dispatch = useDispatch();
-  const navigation = useNavigation();
 
   const { data: mapInfo, error: mapError, isLoading: isLoadingMap } = useGetMapInfoQuery(MAP_ID);
   const { data: listTagInfo, error: tagError, isLoading: isLoadingTag} = useGetListTagInfoQuery(MAP_ID);
@@ -123,9 +123,7 @@ export default function MapScreen() {
     }
   }, [mapInfo, listTagInfo]);
 
-  const moveScreenSearch = (value:any) => {
-    navigation.navigate("search", { value: value })
-  }
+
 
   const closeFinding = async () => {
     // await AsyncStorage.setItem('selectedStart', '');
@@ -139,63 +137,16 @@ export default function MapScreen() {
   return (
     <View style={{ flex: 1 }} >
       {isLoading && (
-        <View style={stylesMap.loadingContainer}>
+        <View style={styMap.loadingContainer}>
           <ActivityIndicator size="large" color="#000000" />
         </View>
       )}
       <View style={{ flex: 1 }} {...panResponder.panHandlers}>
         <GLView style={{ flex: 1 }} onContextCreate={onContextCreate} />
       </View>
-
-      <SafeAreaView style={stylesMap.safeAreaView}>
-        <View style={stylesMap.container}>
-          <View style={stylesMap.infoBox}>
-            <View style={stylesMap.itemIconStart}>
-              <View style={stylesMap.blueCircle}>
-                <View style={stylesMap.blueDot} />
-              </View>
-              <View style={stylesMap.dotsContainer}>
-                <View style={stylesMap.dot} />
-                <View style={stylesMap.dot} />
-                <View style={stylesMap.dot} />
-              </View>
-              <View style={stylesMap.whiteCircle}>
-                <View style={stylesMap.redDot} />
-              </View>
-            </View>
-            <View style={stylesMap.containerSearch}>
-              <View
-                style={stylesMap.row}
-                onTouchStart={(event) => moveScreenSearch("start")}>
-                <Text style={stylesMap.title}>Vị trí của bạn</Text>
-              </View>
-
-              <View style={stylesMap.middleContainer}>
-                <View style={stylesMap.separator} />
-              </View>
-              <View
-                style={stylesMap.row}
-                onTouchStart={(event) => moveScreenSearch("destination")}>
-                <Text style={stylesMap.address}>Điểm đến</Text>
-              </View>
-            </View>
-
-            <View style={stylesMap.itemIconEnd}>
-              <View>
-                {finding ? (
-                  <Ionicons name="close" size={26} color="#000" onPress={closeFinding} />
-                ) : (
-                  <View></View>
-                )}
-              </View>
-              <View style={stylesMap.dotsContainer}>
-              </View>
-            </View>
-          </View>
-        </View>
-      </SafeAreaView>
-      
-      <View style={stylesMap.containertime}>
+      <SearchTagComponent/>
+  
+      <View style={styMap.containerTime}>
         <Text>{serverTime}</Text>
       </View>
     </View>

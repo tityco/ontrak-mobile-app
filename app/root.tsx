@@ -6,8 +6,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { isLoadingAllSelector, isLoginSelector } from '@/redux-toolkit/selector/selector-toolkit';
-import stylesRoot from '@/style_sheet/app/root';
 import LoginScreen from './login';
+import styRoot from '@/style_sheet/app/root';
 
 export default function RootScreen() {
   const isLoading = useSelector(isLoadingAllSelector);
@@ -17,7 +17,7 @@ export default function RootScreen() {
     <>
       <View style={{ flex: 1 }}>
         {isLoading && (
-          <View style={stylesRoot.loadingContainer}>
+          <View style={styRoot.loadingContainer}>
             <ActivityIndicator size="large" color="#000000" />
           </View>
         )}
