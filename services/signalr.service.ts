@@ -27,7 +27,7 @@ class SignalRService {
     });
     try {
       await this.connection.start();
-      console.log(" SignalR Connected!");
+     // console.log(" SignalR Connected!");
       await this.JoinGroup(MAP_ID, USER_ID);
 
     } catch (error) {

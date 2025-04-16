@@ -23,21 +23,17 @@ import { LightSpeedInLeft } from 'react-native-reanimated';
 import SignalRService from '@/services/signalr.service'
 
 import styles from '@/style_sheet/app/tabs/map';
-import mapService from '@/services/map.service';
 import { loadTextureFromURL, updatePositonTag } from '@/_helper/app/tabs/maps/index-heper';
 import threeMapService from '@/services/three-map.service';
 import { useDispatch, useSelector } from 'react-redux';
 import { mapInfoSelector, tagsInfoSelector } from '@/redux-toolkit/selector/selector-toolkit';
-import tagService from '@/services/tag.service';
 import { useGetMapInfoQuery } from '@/redux-toolkit/api/mapInfo-api';
 import findingSlice from '@/redux-toolkit/slice/finding-slice';
 import mapInfoSlice from '@/redux-toolkit/slice/mapInfo-slice';
 import { useGetListTagInfoQuery } from '@/redux-toolkit/api/tagInfio-api';
 import listTagsInfoSlice from '@/redux-toolkit/slice/lsittagsInfo-slice';
-import { isLoading } from 'expo-font';
 import MapViewComponent from '@/components/ui/map-view.component';
-
-
+import loadingSlice from '@/redux-toolkit/slice/loading-slice';
 
 export default function MapScreen() {
 
@@ -48,7 +44,6 @@ export default function MapScreen() {
   const { data: listTagInfo, error: tagError, isLoading: isLoadingTag} = useGetListTagInfoQuery(MAP_ID);
   const isLoadingData = isLoadingMap || isLoadingTag;
 
-
   const mapInfoStore = useSelector(mapInfoSelector);
   const tagsInfoStore = useSelector(tagsInfoSelector);
   
@@ -57,11 +52,20 @@ export default function MapScreen() {
   const [finding, setFinding] = useState(false);
   const [serverTime, setServerTime] = useState("Connecting...")
 
+  useEffect(() => {
+    dispatch(loadingSlice.actions.setLoadingAll('loadimap'));
+  },[]);
+  useEffect(() => {
+    if(!isLoadingMap && !isLoadingTag) {
+      dispatch(loadingSlice.actions.removeLoadingAll('loadimap'));
+    }
+  },[isLoadingMap, isLoadingTag]);
+
   const onContextCreate = async (gl: any) => {
-    if (!isLoading && !mapInfoStore) return;
+    if (!mapInfoStore) return;
     dispatch(findingSlice.actions.changeStart(null));
     dispatch(findingSlice.actions.chageDestination(null));
-  //  await threeMapService.contextCreate(gl, width, height, mapInfoStore, tagsInfoStore);
+    //await threeMapService.contextCreate(gl, width, height, mapInfoStore, tagsInfoStore);
   };
 
   const panResponder = useRef(
@@ -84,35 +88,28 @@ export default function MapScreen() {
   const onReceivePosition = (data: any) => {
     //console.log((new Date()).toISOString(),">>>>>>>>>>>>>>>>")
     //if(dispatch)
-      //sdispatch(listTagsInfoSlice.actions.updatePositonTag(data));
-   // threeMapService.onReceivePosition(data);
+    //sdispatch(listTagsInfoSlice.actions.updatePositonTag(data));
+    // threeMapService.onReceivePosition(data);
   }
   const onReceivePing = (data:any)=>{
-    console.log(data);
+    //console.log(data);
    // setServerTime(data)
   }
   const configSignalR = () => {
-    console.log("configSignalR");
-      
     SignalRService.onDisconnectCallback = (error: any) => {
       setServerTime("Connecting...")
     }
     SignalRService.startConnection();
     SignalRService.on("SendPing", onReceivePing);
     SignalRService.on("SendPosition", onReceivePosition);
-    SignalRService.on("Connected", (msg: any) => {
-    });
-    SignalRService.on("sendbasestation", (msg: any) => {
-    })
+    SignalRService.on("Connected", (msg: any) => {});
+    SignalRService.on("sendbasestation", (msg: any) => {})
   }
 
   const initData = () => {
     dispatch(mapInfoSlice.actions.changeMap(mapInfo));
     dispatch(listTagsInfoSlice.actions.changeTags(listTagInfo));
     configSignalR();
-    setInterval(() => {
-      console.log((new Date()).toISOString(),SignalRService.connection._connectionState)
-    }, 500);
   }
 
   useEffect(() => {
@@ -141,13 +138,8 @@ export default function MapScreen() {
 
   return (
     <View style={{ flex: 1 }} >
-      {/* <MapViewComponent></MapViewComponent> */}
       <View style={{ flex: 1 }} {...panResponder.panHandlers}>
-        {!loaded ? (
-          <ActivityIndicator size="large" color="#00ff00" style={{ flex: 1 }} />
-        ) : (
-          <GLView style={{ flex: 1 }} onContextCreate={onContextCreate} />
-        )}
+        <GLView style={{ flex: 1 }} onContextCreate={onContextCreate} />
       </View>
       <SafeAreaView style={styles.safeAreaView}>
         <View style={styles.container}>
@@ -168,15 +160,13 @@ export default function MapScreen() {
             <View style={styles.containerSearch}>
               <View
                 style={styles.row}
-                onTouchStart={(event) => moveScreenSearch("start")}
-              >
+                onTouchStart={(event) => moveScreenSearch("start")}>
                 <Text style={styles.title}>Vị trí của bạn</Text>
               </View>
 
               <View style={styles.middleContainer}>
                 <View style={styles.separator} />
               </View>
-
               <View
                 style={styles.row}
                 onTouchStart={(event) => moveScreenSearch("destination")}>
@@ -188,18 +178,12 @@ export default function MapScreen() {
               <View>
                 {finding ? (
                   <Ionicons name="close" size={26} color="#000" onPress={closeFinding} />
-
                 ) : (
                   <View></View>
                 )}
-
               </View>
               <View style={styles.dotsContainer}>
-
               </View>
-
-
-
             </View>
           </View>
         </View>
