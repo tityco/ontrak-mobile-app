@@ -5,7 +5,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { useNavigation } from 'expo-router';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-// import { addTodoList, changeUserName } from '@/redux/actions';
+import * as SecureStore from 'expo-secure-store';
 
 export default function TabTwoScreen() {
 
@@ -16,10 +16,13 @@ export default function TabTwoScreen() {
   const [darkMode, setDarkMode] = useState(false);
   const dispatch = useDispatch();
 
+ 
+
 
   
-  const saveSettings = () => {
-    
+  const saveSettings = async () => {
+    await SecureStore.setItemAsync('token', 'abc123');
+    const token = await SecureStore.getItemAsync('token');
     console.log('Đã lưu:', { username, email, darkMode });
   
   };
