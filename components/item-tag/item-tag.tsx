@@ -19,8 +19,8 @@ export default function ItemTag({ item, onPress }: ItemTagProps) {
       style={{ flexDirection: 'row', alignItems: 'center', padding: 15, borderBottomWidth: 1, borderBottomColor: '#ddd' }}
       onPress={() => onPress(item)}>
 
-      <Image source={{ uri: `${API_URL}}e/${item.icon}` }}
-        style={{ marginRight: 15, width: 40, height: 40 }}
+      <Image source={{ uri: `${API_URL}/${item.icon}` }}
+        style={{ marginRight: 15, width: 40, height: 40, transform: [{ rotate: '180deg' }] }}
         resizeMode="cover"/>
 
       <View>

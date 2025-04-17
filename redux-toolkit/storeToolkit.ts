@@ -7,6 +7,7 @@ import listTagsInfoSlice from "./slice/lsittagsInfo-slice";
 import loadingSlice from "./slice/loading-slice";
 import userSlice from "./slice/user-slice";
 import searchSlice from "./slice/search-slice";
+import { listenerMiddleware } from "./middleware/listenerMiddleware";
 
 
 const storeToolkit = configureStore({
@@ -20,7 +21,7 @@ const storeToolkit = configureStore({
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(api.middleware),
+    getDefaultMiddleware().prepend(listenerMiddleware.middleware).concat(api.middleware),
 })
 
 export default storeToolkit;

@@ -24,7 +24,6 @@ const findingSlice = createSlice({
         state.isFinding = true;
       }
     }
-    
   }
 })
 
