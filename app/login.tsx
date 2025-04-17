@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import stylesRoot from '@/style_sheet/app/root';
 import { useDispatch } from 'react-redux';
 import userSlice from '@/redux-toolkit/slice/user-slice';
+import { MESSAGE } from '@/constants/Message';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -14,7 +15,7 @@ export default function LoginScreen() {
     if (email === 'admin' && password === 'admin') {
       dispatch(userSlice.actions.setIsLoging(true));
     } else {
-      alert('Sai tài khoản hoặc mật khẩu!');
+      alert(MESSAGE.INCORRECT_USER);
     }
   };
 
@@ -28,19 +29,19 @@ export default function LoginScreen() {
           <Image source={require('@/assets/images/icon.png')} style={stylesRoot.logo} />
           <TextInput
             style={stylesRoot.input}
-            placeholder="Email"
+            placeholder={MESSAGE.EMAIL}
             value={email}
             onChangeText={setEmail}
           />
           <TextInput
             style={stylesRoot.input}
-            placeholder="Mật khẩu"
+            placeholder={MESSAGE.PASSWORD}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
           />
           <TouchableOpacity style={stylesRoot.button} onPress={handleLogin}>
-            <Text style={stylesRoot.buttonText}>Đăng Nhập</Text>
+            <Text style={stylesRoot.buttonText}>{MESSAGE.LOG_IN}</Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>

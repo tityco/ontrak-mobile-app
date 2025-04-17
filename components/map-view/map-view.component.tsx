@@ -16,6 +16,7 @@ export default function MapViewComponent() {
   const InitMapView = async () => {
     await threeMapService.contextCreate( gl, width, height, mapInfoStore, tagsInfoStore);
   }
+  
   useEffect(() => {
     if(!mapInfoStore) return;
     if(!tagsInfoStore) return;

@@ -6,6 +6,7 @@ import mapInfoSlice from "./slice/mapInfo-slice";
 import listTagsInfoSlice from "./slice/lsittagsInfo-slice";
 import loadingSlice from "./slice/loading-slice";
 import userSlice from "./slice/user-slice";
+import searchSlice from "./slice/search-slice";
 
 
 const storeToolkit = configureStore({
@@ -15,6 +16,7 @@ const storeToolkit = configureStore({
     listtagsInfo: listTagsInfoSlice.reducer,
     loading: loadingSlice.reducer,
     user: userSlice.reducer,
+    search: searchSlice.reducer,
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware) =>

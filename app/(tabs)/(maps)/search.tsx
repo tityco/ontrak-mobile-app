@@ -3,96 +3,74 @@ import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import mapService from '@/services/map.service';
+import { API_URL } from '@/constants/Constant';
+import ItemTag from '@/components/item-tag/item-tag';
+import { ParamsNaviga } from '@/constants/ParamsNaviga';
+import { useDispatch, useSelector } from 'react-redux';
+import findingSlice from '@/redux-toolkit/slice/finding-slice';
+import { listTagSearchFilter, selectedDestinationSelector, selectedStartSelector, } from '@/redux-toolkit/selector/selector-toolkit';
+import { MESSAGE } from '@/constants/Message';
+import searchSlice from '@/redux-toolkit/slice/search-slice';
+
 
 
 export default function SearchScreen() {
-  const searchInputStart = useRef(null);
-  const searchInputDestination = useRef(null);
-   const [data, setData] = useState([]);
-   const [dataRaw, setDataRaw] = useState([]);
-   const [type, setType] = useState(1);
-  /* 2. Get the param */
-  const x = useLocalSearchParams();
 
-const navigation = useNavigation();
-  useEffect(() => {
-    if (x.tagInfo) {
-      try {
-        const parsedData = JSON.parse(x.tagInfo);
-        setData(parsedData); // Cập nhật dữ liệu một lần
-        setDataRaw(parsedData);
-      } catch (error) {
-        console.error("Lỗi khi parse JSON:", error);
-      }
-    }
-  }, [x.tagInfo]); // Chỉ chạy khi `x.tagInfo` thay đổi
+  const navigation = useNavigation();
+  const params = useLocalSearchParams();
+  const dispatch = useDispatch();
+  
+  const searchInputStart = useRef<any>(null);
+  const searchInputDestination = useRef<any>(null);
+  const [typeSearch, setTypeSearch] = useState<any>('');
+
+  const data = useSelector(listTagSearchFilter);
+
+  const tagStart = useSelector(selectedStartSelector);
+  const tagDestination = useSelector(selectedDestinationSelector);
+
+  const [searchStart, setSearchStart] = useState(tagStart?.tagName ?? "")
+  const [searchDestination, setSearchDestination] = useState(tagDestination?.tagName??"")
 
   const goBack = () => {
     navigation.goBack();
-    // router.replace({
-    //   pathname: "/",
-    //   params: { message: "Hello từ B!" }
-    // });
   }
+  
   useEffect(() => {
-    if (x.value == 'start') {
-      setType(1);
+    dispatch(searchSlice.actions.setSearchTag(''));
+    setTypeSearch(params.value);
+    if (params.value == ParamsNaviga.SEARCH_SCREEN.START) {
       setTimeout(() => {
         if (searchInputStart.current) {
           searchInputStart.current.focus();
         }
-      }, 300); // Delay 300ms để đảm bảo focus không bị mất khi chuyển màn
+      }, 300); 
     } else {
-      setType(2);
       setTimeout(() => {
         if (searchInputDestination.current) {
           searchInputDestination.current.focus();
         }
-      }, 300); //
+      }, 300); 
     }
-
   }, [])
-  // return {tagID: tag.data.tagID, icon: tag.data.icon, tagName: tag.data.tagName,x: tag.data.x,y: tag.data.y,status:tag.data.status}
 
 
-  const setSearchQuery = (text)=>{
-   if(!text) setData(dataRaw);
-   else{
-    let dataf = dataRaw.filter(tag => tag.tagName.toLowerCase().includes(text.toLowerCase()))
-    setData(dataf);   
-   }
+  const setSearchQuery = (text:any, searchType:any)=>{
+    if(searchType == ParamsNaviga.SEARCH_SCREEN.START) setSearchStart(text);
+    else  setSearchDestination(text);
+    dispatch(searchSlice.actions.setSearchTag(text));
   }
-  const clicItem = async (item) => {
-    if(type == "1"){
-      await AsyncStorage.setItem('selectedStart', JSON.stringify( item ));
 
+  const clicItem = async (item:any) => {
+    if(typeSearch == ParamsNaviga.SEARCH_SCREEN.START){
+      dispatch(findingSlice.actions.changeStart(item));
     }
     else{
-      await AsyncStorage.setItem('selectedDestination', JSON.stringify( item ));
-
+      dispatch(findingSlice.actions.chageDestination(item));
     }
-    
+    dispatch(searchSlice.actions.setSearchTag(''));
     navigation.goBack();
   }
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={{ flexDirection: 'row', alignItems: 'center', padding: 15, borderBottomWidth: 1, borderBottomColor: '#ddd' }}
-      onPress={() => clicItem(item)}
-    >
-      <Image 
-        source={{ uri: `https://ontrak.live/${item.icon}` }} 
-        style={{ marginRight: 15 , width: 40, height: 40}} 
-        resizeMode="cover"
-      />
-
-      <View>
-        <Text style={{ fontSize: 16, fontWeight: '500' }}>{item.tagName}</Text>
-        <Text style={{ fontSize: 14, color: 'gray' }}> x: {item.x}  y: {item.y} {item.status}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
   return (
     <SafeAreaView style={styles.safeAreaView}>
       <View style={styles.container}>
@@ -115,11 +93,12 @@ const navigation = useNavigation();
               style={styles.row}
             >
               <TextInput
-              readOnly = {type != 1}
+                readOnly = {typeSearch != ParamsNaviga.SEARCH_SCREEN.START}
                 ref={searchInputStart}
                 style={styles.title}
-                placeholder="Vị trí của bạn"
-                onChangeText={(text) => setSearchQuery(text)}
+                value={searchStart}
+                placeholder={MESSAGE.YOUR_LOCATION}
+                onChangeText={(text) => setSearchQuery(text, ParamsNaviga.SEARCH_SCREEN.START)}
               />
            
             </View>
@@ -131,17 +110,17 @@ const navigation = useNavigation();
             <View
               style={styles.row} >
               <TextInput
-                readOnly = {type == 1}
+                readOnly = {typeSearch != ParamsNaviga.SEARCH_SCREEN.DESTINATION}
                 ref={searchInputDestination}
                 style={styles.address}
-                onChangeText={(text) => setSearchQuery(text)}
-                placeholder="Điểm đến" />
+                value={searchDestination}
+                onChangeText={(text) => setSearchQuery(text, ParamsNaviga.SEARCH_SCREEN.DESTINATION )}
+                placeholder={MESSAGE.DESTINATION} />
             </View>
           </View>
           <View style={styles.itemIconEnd}>
             <View onTouchStart={goBack}>
               <Ionicons name="close" size={26} color="#000" />
-
             </View>
             <View style={styles.dotsContainer}>
             </View>
@@ -149,12 +128,15 @@ const navigation = useNavigation();
 
         </View>
       </View>
+      
       <View style={{ flex: 1, backgroundColor: '#fff' }}>
         <FlatList style={{  flex: 1 }}
           data={data}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ flexGrow: 1 }} // Giúp danh sách scroll được
-          renderItem={renderItem}
+          keyExtractor={(item:any) => item.id}
+          contentContainerStyle={{ flexGrow: 1 }} 
+          renderItem={({ item }) => (
+            <ItemTag item={item} onPress={(selectedItem) => clicItem(selectedItem)} />
+          )}
         />
     </View>
     </SafeAreaView>

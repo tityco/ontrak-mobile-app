@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from "react-redux";
 
 
 class ThreeMapService {
-
   camera: any= null;
   renderer:any = null;
   scene:any = null;
@@ -19,6 +18,7 @@ class ThreeMapService {
   width:any = 0;
   height:any = 0;
   dispatch:any = null ;
+  dt = 0;
   contextCreate = async (gl: any, width: any, height :any, mapInfo: any, tagsInfo:any[]) => {
     this.gl = gl;
     this.scene = this.initScene();
@@ -44,10 +44,17 @@ class ThreeMapService {
   render = (time:any) => {
     requestAnimationFrame(this.render);
     this.tweenGroup.update(time);
-    //if (((new Date()).getTime() - dt) >= 500) {
-      //genFindPath();
-      //dt = (new Date()).getTime();
-    //};
+   
+    if (((new Date()).getTime() - this.dt) >= 500) {
+      this.tagInfoThree.forEach(tagThree => {
+        if(tagThree.data.status != 4){
+          tagThree.obj3D.visible = true;
+        }else{
+          tagThree.obj3D.visible = false;
+        }
+      })
+      this.dt = (new Date()).getTime();
+    };
 
     this.renderer.render(this.scene, this.camera);
 

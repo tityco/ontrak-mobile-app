@@ -25,7 +25,7 @@ import SignalRService from '@/services/signalr.service'
 import { loadTextureFromURL, updatePositonTag } from '@/_helper/app/tabs/maps/index-heper';
 import threeMapService from '@/services/three-map.service';
 import { useDispatch, useSelector } from 'react-redux';
-import { isLoadingMapScreenSelector, mapInfoSelector, tagsInfoSelector } from '@/redux-toolkit/selector/selector-toolkit';
+import { isLoadingMapScreenSelector, mapInfoSelector, selectedDestinationSelector, selectedStartSelector, tagsInfoSelector } from '@/redux-toolkit/selector/selector-toolkit';
 import { useGetMapInfoQuery } from '@/redux-toolkit/api/mapInfo-api';
 import findingSlice from '@/redux-toolkit/slice/finding-slice';
 import mapInfoSlice from '@/redux-toolkit/slice/mapInfo-slice';
@@ -35,41 +35,41 @@ import MapViewComponent from '@/components/map-view/map-view.component';
 import loadingSlice from '@/redux-toolkit/slice/loading-slice';
 import styMap from '@/style_sheet/app/tabs/map';
 import SearchTagComponent from '@/components/search-tag/search-tag.component';
+import { MESSAGE } from '@/constants/Message';
 
 export default function MapScreen() {
 
   const dispatch = useDispatch();
-  const LOAIND_MAP = 'loadingmap';
   const { data: mapInfo, error: mapError, isLoading: isLoadingMap } = useGetMapInfoQuery(MAP_ID);
   const { data: listTagInfo, error: tagError, isLoading: isLoadingTag} = useGetListTagInfoQuery(MAP_ID);
-  const isLoadingData = isLoadingMap || isLoadingTag;
   const isLoading = useSelector(isLoadingMapScreenSelector);
 
-  
-  const [loaded, setLoaded] = useState(true);
-  const { width, height } = Dimensions.get('window');
-  const [finding, setFinding] = useState(false);
-  const [serverTime, setServerTime] = useState("Connecting...")
+  const [serverTime, setServerTime] = useState(`${MESSAGE.CONNECTING}...`)
+
 
   useEffect(() => {
-    dispatch(loadingSlice.actions.setLoadingMapScreen(LOAIND_MAP));
+    dispatch(loadingSlice.actions.setLoadingMapScreen(MESSAGE.LOAIND_MAP));
   },[]);
+
   useEffect(() => {
     if(!isLoadingMap && !isLoadingTag) {
-      dispatch(loadingSlice.actions.removeLoadingMapScreen(LOAIND_MAP));
+      dispatch(loadingSlice.actions.removeLoadingMapScreen(MESSAGE.LOAIND_MAP));
+      initData();
     }
   },[isLoadingMap, isLoadingTag]);
 
 
   const onReceivePosition = (data: any) => {
-    dispatch(listTagsInfoSlice.actions.updatePositonTag(data));
+    dispatch(listTagsInfoSlice.actions.updateTag(data));
   }
+
   const onReceivePing = (data:any)=>{
    setServerTime(data)
   }
+
   const configSignalR = () => {
     SignalRService.onDisconnectCallback = (error: any) => {
-      setServerTime("Connecting...")
+      setServerTime(`${MESSAGE.CONNECTING}...`)
     }
     SignalRService.startConnection();
     SignalRService.on("SendPing", onReceivePing);
@@ -84,17 +84,6 @@ export default function MapScreen() {
     configSignalR();
   }
 
-  useEffect(() => {
-    setLoaded(false);
-  }, []);
-
-  useEffect(() => {
-    if (!isLoadingData) {
-      initData();
-      setLoaded(true);
-    }
-  }, [mapInfo, listTagInfo]);
-
 
   return (
     <View style={{ flex: 1 }} >
@@ -105,7 +94,6 @@ export default function MapScreen() {
       )}
       <MapViewComponent />
       <SearchTagComponent/>
-  
       <View style={styMap.containerTime}>
         <Text>{serverTime}</Text>
       </View>

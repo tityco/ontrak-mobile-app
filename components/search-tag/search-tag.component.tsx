@@ -4,39 +4,42 @@ import { GLView } from "expo-gl";
 import { useNavigation } from "expo-router";
 import { useState } from "react";
 import { View, Text, ActivityIndicator, SafeAreaView } from "react-native";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import ItemIconStartComponent from "./item-icon-start.component";
+import { isFindingSelector, selectedDestinationSelector, selectedStartSelector } from "@/redux-toolkit/selector/selector-toolkit";
+import { ParamsNaviga } from "@/constants/ParamsNaviga";
+import findingSlice from "@/redux-toolkit/slice/finding-slice";
+import { MESSAGE } from "@/constants/Message";
+
 
 
 export default function SearchTagComponent() {
   const navigation = useNavigation();
-  const [finding, setFinding] = useState(false);
+  const dispatch = useDispatch();
+
+  const finding = useSelector(isFindingSelector);
+  const tagStart = useSelector(selectedStartSelector);
+  const tagDestination = useSelector(selectedDestinationSelector);
   
   const moveScreenSearch = (value: any) => {
-    navigation.navigate("search", { value: value })
+    navigation.navigate(ParamsNaviga.SEARCH_SCREEN.NAME, { value: value })
+  }
+
+  const closeFinding = ()=> { 
+     dispatch(findingSlice.actions.changeStart(null));
+     dispatch(findingSlice.actions.chageDestination(null));
   }
 
   return (
     <SafeAreaView style={stySearchTagComp.safeAreaView}>
       <View style={stySearchTagComp.container}>
         <View style={stySearchTagComp.infoBox}>
-          <View style={stySearchTagComp.itemIconStart}>
-            <View style={stySearchTagComp.blueCircle}>
-              <View style={stySearchTagComp.blueDot} />
-            </View>
-            <View style={stySearchTagComp.dotsContainer}>
-              <View style={stySearchTagComp.dot} />
-              <View style={stySearchTagComp.dot} />
-              <View style={stySearchTagComp.dot} />
-            </View>
-            <View style={stySearchTagComp.whiteCircle}>
-              <View style={stySearchTagComp.redDot} />
-            </View>
-          </View>
+          <ItemIconStartComponent/>
           <View style={stySearchTagComp.containerSearch}>
             <View
               style={stySearchTagComp.row}
-              onTouchStart={(event) => moveScreenSearch("start")}>
-              <Text style={stySearchTagComp.title}>Vị trí của bạn</Text>
+              onTouchStart={(event) => moveScreenSearch(ParamsNaviga.SEARCH_SCREEN.START)}>
+              <Text style={stySearchTagComp.title}>{tagStart?.tagName ?? MESSAGE.YOUR_LOCATION}</Text>
             </View>
 
             <View style={stySearchTagComp.middleContainer}>
@@ -44,8 +47,8 @@ export default function SearchTagComponent() {
             </View>
             <View
               style={stySearchTagComp.row}
-              onTouchStart={(event) => moveScreenSearch("destination")}>
-              <Text style={stySearchTagComp.address}>Điểm đến</Text>
+              onTouchStart={(event) => moveScreenSearch(ParamsNaviga.SEARCH_SCREEN.DESTINATION)}>
+              <Text style={stySearchTagComp.address}>{tagDestination?.tagName ?? MESSAGE.DESTINATION}</Text>
             </View>
           </View>
           <View style={stySearchTagComp.itemIconEnd}>
