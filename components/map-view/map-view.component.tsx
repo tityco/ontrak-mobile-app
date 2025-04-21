@@ -1,4 +1,4 @@
-import { mapInfoSelector, tagsInfoSelector } from "@/redux-toolkit/selector/selector-toolkit";
+import { mapInfoSelector, pathInfoSelector, tagsInfoSelector } from "@/redux-toolkit/selector/selector-toolkit";
 import findingSlice from "@/redux-toolkit/slice/finding-slice";
 import threeMapService from "@/services/three-map.service";
 import { GLView } from "expo-gl";
@@ -12,9 +12,10 @@ export default function MapViewComponent() {
   const { width, height } = Dimensions.get("window");
   const mapInfoStore = useSelector(mapInfoSelector);
   const tagsInfoStore = useSelector(tagsInfoSelector);
+  const pathsInfoStore = useSelector(pathInfoSelector);
   const [gl, setGl] = useState(null);
   const InitMapView = async () => {
-    await threeMapService.contextCreate( gl, width, height, mapInfoStore, tagsInfoStore);
+    await threeMapService.contextCreate( gl, width, height, mapInfoStore, tagsInfoStore, pathsInfoStore);
   }
   
   useEffect(() => {

@@ -8,6 +8,7 @@ import loadingSlice from "./slice/loading-slice";
 import userSlice from "./slice/user-slice";
 import searchSlice from "./slice/search-slice";
 import { listenerMiddleware } from "./middleware/listenerMiddleware";
+import listPathInfoSlice from "./slice/pathInfo-slice";
 
 
 const storeToolkit = configureStore({
@@ -15,6 +16,7 @@ const storeToolkit = configureStore({
     finding: findingSlice.reducer,
     mapInfo: mapInfoSlice.reducer,
     listtagsInfo: listTagsInfoSlice.reducer,
+    listPathInfo: listPathInfoSlice.reducer,
     loading: loadingSlice.reducer,
     user: userSlice.reducer,
     search: searchSlice.reducer,

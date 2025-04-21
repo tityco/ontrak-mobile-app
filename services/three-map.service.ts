@@ -1,10 +1,11 @@
-import { loadTextureFromURL, updatePositonTag } from "@/_helper/app/tabs/maps/index-heper";
+
 import { API_URL, MOVE_SPEED } from "@/constants/Constant";
 import { mapInfoSelector } from "@/redux-toolkit/selector/selector-toolkit";
 import { Easing, Group, Tween } from "@tweenjs/tween.js";
 import { Renderer, THREE } from "expo-three";
 import { useDispatch, useSelector } from "react-redux";
-
+import findPathService from "@/services/find-path.service";
+import { loadTextureFromURL } from "@/_helper/helper";
 
 class ThreeMapService {
   camera: any= null;
@@ -21,8 +22,9 @@ class ThreeMapService {
   dt = 0;
   tagStart:any= null;
   tagDestination:any = null;
-
-  contextCreate = async (gl: any, width: any, height :any, mapInfo: any, tagsInfo:any[]) => {
+  pathsInfo:any[] = [];
+  contextCreate = async (gl: any, width: any, height :any, mapInfo: any, tagsInfo:any[], _pathsInfo:any[]) => {
+    this.pathsInfo = _pathsInfo;
     this.gl = gl;
     this.scene = this.initScene();
     this.width = width;
@@ -42,7 +44,7 @@ class ThreeMapService {
     this.scene.add(await this.getFloor(mapInfo));
     await this.addTags(mapInfo, tagsInfo);
     this.render(0);
-
+    findPathService.initFinding(this.pathsInfo)
   };
 
   onTagUpdate = (tagupdate:any) =>{
@@ -65,26 +67,39 @@ class ThreeMapService {
   }
   lineFinding:any = null
 
+  getNumber = (para:any):any => {
+    if(isNaN(para)) return 0
+    if(isFinite(para)) return 0
+    if(para == null) return 0
+    return para
+  }
   genRouteFinding = () =>{
+    //remove line
     if(this.lineFinding){
       this.scene.remove(this.lineFinding);
       this.lineFinding.geometry.dispose();
       this.lineFinding.material.dispose();
       this.lineFinding = null;
     }
+    //add line
     let tags = this.tagInfoThree.filter((tag:any) => tag.data.serial == this.tagStart?.serial);
     let tagD = this.tagInfoThree.filter((tag:any) => tag.data.serial == this.tagDestination?.serial);
+    let path = findPathService.findFullPath(
+      {x: this.getNumber(tags[0].obj3D.position.x),y:this.getNumber(tags[0].obj3D.position.y)},
+      {x: this.getNumber(tagD[0].obj3D.position.x),y:this.getNumber(tagD[0].obj3D.position.y)},
+    )
+    let points:any [] = []
+    //console.log(path)
+    path.forEach(p =>{
+      points.push( new THREE.Vector3(p.x, p.y, 10))
+    })
 
-    const points = [
-      new THREE.Vector3(tags[0].data.x, tags[0].data.y, 10),
-      new THREE.Vector3(tagD[0].data.x, tagD[0].data.y, 10),
-    ];
-    
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     
     const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
     
     this.lineFinding = new THREE.Line(geometry, material);
+
     this.scene.add(this.lineFinding);
     
   } 
@@ -241,11 +256,9 @@ class ThreeMapService {
           });
         }
 
-        // 🔹 Lưu khoảng cách mới
         this.previousTouch.distance = newDistance;
       }
     } else {
-      // 🔹 Xử lý PAN
       const { moveX, moveY } = gesture;
       const deltaX = (moveX - this.previousTouch.x) * 2 / this.width * this.camera.right;
       const deltaY = (moveY - this.previousTouch.y) * 2 / this.height * this.camera.top;

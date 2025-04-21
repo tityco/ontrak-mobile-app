@@ -12,6 +12,10 @@ export const mapInfoSelector = (state: any) => state.mapInfo
 /// Selector for listTagsInfo slice
 export const tagsInfoSelector = (state: any) => state.listtagsInfo
 
+/// Selector for listPathInfo slice
+export const pathInfoSelector = (state: any) => state.listPathInfo
+
+
 // Selector for search slice
 export const searchTagSelector = (state: any) => state.search.searchTag
 export const listTagSearchFilter = createSelector([tagsInfoSelector, searchTagSelector], (tagInfo, search) => {
